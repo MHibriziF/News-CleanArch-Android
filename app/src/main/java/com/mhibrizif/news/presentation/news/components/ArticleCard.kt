@@ -37,17 +37,15 @@ fun ArticleCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            if (article.urlToImage.isNotBlank()) {
-                AsyncImage(
-                    model = article.urlToImage,
-                    contentDescription = article.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
+            AsyncImage(
+                model = article.urlToImage.ifBlank { NO_IMAGE_URL },
+                contentDescription = article.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                contentScale = ContentScale.Crop
+            )
 
             Column(modifier = Modifier.padding(16.dp)) {
                 Row {
@@ -103,6 +101,8 @@ fun ArticleCard(
         }
     }
 }
+
+private const val NO_IMAGE_URL = "https://png.pngtree.com/png-vector/20221125/ourmid/pngtree-no-image-available-icon-flatvector-illustration-blank-avatar-modern-vector-png-image_40962406.jpg"
 
 private fun formatDate(dateString: String): String {
     if (dateString.isBlank()) return ""

@@ -4,14 +4,13 @@ import com.mhibrizif.news.domain.model.Article
 import com.mhibrizif.news.domain.repository.NewsRepository
 import javax.inject.Inject
 
-class GetTopHeadlinesUseCase @Inject constructor(
+class GetIndonesiaNewsUseCase @Inject constructor(
     private val repository: NewsRepository
 ) {
     suspend operator fun invoke(
-        country: String = "us",
         page: Int = 1,
         pageSize: Int = 20
     ): Result<List<Article>> {
-        return repository.getTopHeadlines(country, page, pageSize)
+        return repository.searchNews(query = "Indonesia", page = page, pageSize = pageSize)
     }
 }

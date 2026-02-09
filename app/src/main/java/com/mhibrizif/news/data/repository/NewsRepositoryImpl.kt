@@ -13,25 +13,30 @@ class NewsRepositoryImpl @Inject constructor(
     private val dao: ArticleDao
 ) : NewsRepository {
 
-    override suspend fun getTopHeadlines(country: String): Result<List<Article>> {
+    override suspend fun getTopHeadlines(
+        country: String,
+        page: Int,
+        pageSize: Int
+    ): Result<List<Article>> {
         return try {
-            val response = api.getTopHeadlines(country)
+            val response = api.getTopHeadlines(country, page, pageSize)
             val dtoArticles = response.articles.orEmpty()
             val articles = dtoArticles.map { it.toDomain() }
 
-            // Cache results
-            dao.deleteArticlesByCategory(CATEGORY_TOP_HEADLINES)
+            if (page == 1) {
+                dao.deleteArticlesByCategory(CATEGORY_TOP_HEADLINES)
+            }
             dao.insertArticles(dtoArticles.map { it.toEntity(CATEGORY_TOP_HEADLINES) })
 
             Result.success(articles)
         } catch (e: Exception) {
-            // Fall back to cached data
-            val cached = dao.getArticlesByCategory(CATEGORY_TOP_HEADLINES)
-            if (cached.isNotEmpty()) {
-                Result.success(cached.map { it.toDomain() })
-            } else {
-                Result.failure(e)
+            if (page == 1) {
+                val cached = dao.getArticlesByCategory(CATEGORY_TOP_HEADLINES)
+                if (cached.isNotEmpty()) {
+                    return Result.success(cached.map { it.toDomain() })
+                }
             }
+            Result.failure(e)
         }
     }
 
@@ -39,10 +44,12 @@ class NewsRepositoryImpl @Inject constructor(
         query: String,
         from: String?,
         to: String?,
-        sortBy: String
+        sortBy: String,
+        page: Int,
+        pageSize: Int
     ): Result<List<Article>> {
         return try {
-            val response = api.searchNews(query, from, to, sortBy)
+            val response = api.searchNews(query, from, to, sortBy, page, pageSize)
             Result.success(response.articles.orEmpty().map { it.toDomain() })
         } catch (e: Exception) {
             Result.failure(e)
